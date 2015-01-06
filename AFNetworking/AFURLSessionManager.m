@@ -389,6 +389,12 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
     return self;
 }
 
+#pragma mark -
+
+- (NSString *)descriptionForAllTasks {
+    return [NSString stringWithFormat:@"%p", self];
+}
+
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
@@ -396,8 +402,7 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
 - (void)taskDidResume:(NSNotification *)notification {
     NSURLSessionTask *task = notification.object;
     if ([task isKindOfClass:[NSURLSessionTask class]]) {
-        AFURLSessionManager *manager = [self delegateForTask:task].manager;
-        if ([manager isEqual:self]) {
+        if ([task.taskDescription isEqualToString:[self descriptionForAllTasks]]) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [[NSNotificationCenter defaultCenter] postNotificationName:AFNetworkingTaskDidResumeNotification object:task];
             });
@@ -408,8 +413,7 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
 - (void)taskDidSuspend:(NSNotification *)notification {
     NSURLSessionTask *task = notification.object;
     if ([task isKindOfClass:[NSURLSessionTask class]]) {
-        AFURLSessionManager *manager = [self delegateForTask:task].manager;
-        if ([manager isEqual:self]) {
+        if ([task.taskDescription isEqualToString:[self descriptionForAllTasks]]) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [[NSNotificationCenter defaultCenter] postNotificationName:AFNetworkingTaskDidSuspendNotification object:task];
             });
@@ -448,6 +452,7 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
     delegate.manager = self;
     delegate.completionHandler = completionHandler;
 
+    dataTask.taskDescription = [self descriptionForAllTasks];
     [self setDelegate:delegate forTask:dataTask];
 }
 
@@ -479,6 +484,7 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
         *progress = delegate.progress;
     }
 
+    uploadTask.taskDescription = [self descriptionForAllTasks];
     [self setDelegate:delegate forTask:uploadTask];
 }
 
@@ -501,6 +507,7 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
         *progress = delegate.progress;
     }
 
+    downloadTask.taskDescription = [self descriptionForAllTasks];
     [self setDelegate:delegate forTask:downloadTask];
 }
 
